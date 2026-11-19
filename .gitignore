@@ -1,0 +1,35 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+# Model weights and exported engines are downloaded or generated, never committed
+*.pt
+*.onnx
+*.engine
+*.torchscript
+*_openvino_model/
+models/*
+!models/README.md
+# Runtime outputs
+runs/
+outputs/
+*.mp4
+*.avi
+*.jsonl
+!tests/data/*.jsonl
+# ROS 2 build artefacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+.DS_Store
+.idea/
+.vscode/
