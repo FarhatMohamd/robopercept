@@ -20,7 +20,7 @@ from .profiling import StageTimer
 from .safety import EventBus, RiskAssessor
 from .structures import Detection, Event, FrameResult, RiskLevel, Track
 from .tracking import ByteTracker
-from .viz import BirdEyeView, compose, draw_hud, draw_lanes, draw_track, draw_zones
+from .viz import BirdEyeView, compose, draw_hud, draw_lanes, draw_track, draw_track_label, draw_zones
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class Pipeline:
             profile=s.profile,
             stop_distance=s.stop_distance_m,
             slow_distance=s.slow_distance_m,
-            z_range=50.0 if s.profile == "vehicle" else 15.0,
+            z_range=60.0 if s.profile == "vehicle" else 15.0,
             x_range=15.0 if s.profile == "vehicle" else 6.0,
         )
 
@@ -156,8 +156,14 @@ class Pipeline:
                 [z.name for z in self.cfg.zones],
                 active,
             )
-        for tr in sorted(res.tracks, key=lambda t: -(t.world.z if t.world else 0)):
-            draw_track(out, tr, out_cfg.draw_trails)
+        # Boxes far-to-near (nearest on top), then labels near-to-far so the
+        # closest, most relevant objects keep their label position
+        ordered = sorted(res.tracks, key=lambda t: -(t.world.z if t.world else 0))
+        for tr in ordered:
+            draw_track(out, tr, out_cfg.draw_trails, label=False)
+        occupied: list[tuple[int, int, int, int]] = []
+        for tr in reversed(ordered):
+            draw_track_label(out, tr, occupied)
         draw_hud(out, res, self.timer.fps)
         if out_cfg.draw_bev:
             out = compose(out, self.bev.render(res.tracks))

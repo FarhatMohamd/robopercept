@@ -40,11 +40,31 @@ def class_color(name: str) -> tuple[int, int, int]:
     return int(b), int(g), int(r)
 
 
-def _label(img: np.ndarray, text: str, org: tuple[int, int], color: tuple[int, int, int], scale: float = 0.45) -> None:
+def _overlaps(r: tuple[int, int, int, int], others: list[tuple[int, int, int, int]]) -> bool:
+    return any(r[0] < o[2] and o[0] < r[2] and r[1] < o[3] and o[1] < r[3] for o in others)
+
+
+def _label(
+    img: np.ndarray,
+    text: str,
+    org: tuple[int, int],
+    color: tuple[int, int, int],
+    scale: float = 0.45,
+    occupied: list[tuple[int, int, int, int]] | None = None,
+) -> None:
+    """Draw a filled label; with ``occupied`` it is shifted up until it does not overlap others."""
     (tw, th), base = cv2.getTextSize(text, FONT, scale, 1)
     x, y = org
     if y < th + 40:  # would collide with the HUD bar: move the label inside the box
         y = y + th + 8
+    if occupied is not None:
+        rect = (x, y - th - 4, x + tw + 6, y + base - 2)
+        for _ in range(6):
+            if not _overlaps(rect, occupied):
+                break
+            y -= th + 6
+            rect = (x, y - th - 4, x + tw + 6, y + base - 2)
+        occupied.append(rect)
     cv2.rectangle(img, (x, y - th - 4), (x + tw + 6, y + base - 2), color, -1)
     cv2.putText(img, text, (x + 3, y - 3), FONT, scale, (20, 20, 20), 1, cv2.LINE_AA)
 
@@ -77,7 +97,7 @@ def draw_zones(img: np.ndarray, polys: list[np.ndarray], names: list[str], activ
     cv2.addWeighted(overlay, 0.15, img, 0.85, 0, img)
 
 
-def draw_track(img: np.ndarray, tr: Track, trails: bool = True) -> None:
+def draw_track(img: np.ndarray, tr: Track, trails: bool = True, label: bool = True) -> None:
     x1, y1, x2, y2 = tr.box.astype(int)
     ccol = class_color(tr.class_name)
     rcol = RISK_COLORS[tr.risk]
@@ -88,12 +108,19 @@ def draw_track(img: np.ndarray, tr: Track, trails: bool = True) -> None:
         for i in range(1, len(pts)):
             a = i / len(pts)
             cv2.line(img, tuple(pts[i - 1]), tuple(pts[i]), ccol, max(1, int(3 * a)), cv2.LINE_AA)
+    if label:
+        draw_track_label(img, tr)
+
+
+def draw_track_label(img: np.ndarray, tr: Track, occupied: list[tuple[int, int, int, int]] | None = None) -> None:
+    x1, y1 = int(tr.box[0]), int(tr.box[1])
     parts = [f"{tr.class_name} #{tr.track_id}"]
     if tr.world is not None:
         parts.append(f"{tr.world.distance:.1f}m")
     if math.isfinite(tr.ttc) and tr.ttc < 10:
         parts.append(f"TTC {tr.ttc:.1f}s")
-    _label(img, " ".join(parts), (x1, y1 - 2), rcol if tr.risk > RiskLevel.SAFE else ccol)
+    color = RISK_COLORS[tr.risk] if tr.risk > RiskLevel.SAFE else class_color(tr.class_name)
+    _label(img, " ".join(parts), (x1, y1 - 2), color, occupied=occupied)
 
 
 def draw_hud(img: np.ndarray, res: FrameResult, fps: float) -> None:

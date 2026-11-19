@@ -57,6 +57,10 @@ class RiskAssessor:
         self._last_level = RiskLevel.SAFE
         self._last_event_t: dict[tuple[str, int | None], float] = {}
         self.ego_speed = self.cfg.ego_speed_mps
+        # Speed factor output: drops instantly, recovers at a bounded rate (per second)
+        self.recovery_rate = 0.6
+        self._factor = 1.0
+        self._factor_t: float | None = None
         self.event_cooldown_s = 2.0
 
     def _raw_level(self, tr: Track) -> tuple[RiskLevel, float, bool]:
@@ -146,6 +150,14 @@ class RiskAssessor:
                 decision.speed_factor = 0.4
         elif decision.level == RiskLevel.CAUTION:
             decision.speed_factor = 0.7
+
+        # Asymmetric rate limiter: slowing down is immediate, speeding up is gradual,
+        # which removes the stop-and-go chatter of a flickering detection
+        dt = 0.0 if self._factor_t is None else max(0.0, t - self._factor_t)
+        self._factor_t = t
+        target = decision.speed_factor
+        self._factor = target if target <= self._factor else min(target, self._factor + self.recovery_rate * dt)
+        decision.speed_factor = self._factor
 
         crit = next((tr for tr in tracks if tr.track_id == decision.critical_track), None)
         if crit is not None:

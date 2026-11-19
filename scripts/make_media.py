@@ -28,11 +28,11 @@ def render(
     for res, vis in pipe.stream():
         i = res.frame_index
         if i in stills:
-            cv2.imwrite(str(out / stills[i]), vis)
+            cv2.imwrite(str(out / stills[i]), vis, [cv2.IMWRITE_JPEG_QUALITY, 88])
         if gif and gif_range[0] <= i < gif_range[1] and i % 2 == 0:
             cv2.imwrite(str(tmp / f"{i:05d}.png"), vis)
     if gif:
-        palette = tmp / "palette.png"
+        palette = out / f"_{scenario}_palette.png"
         pattern = str(tmp / "*.png")
         scale = "fps=15,scale=900:-1:flags=lanczos"
         subprocess.run(
@@ -71,6 +71,7 @@ def render(
             ],
             check=True,
         )
+        palette.unlink()
     for f in tmp.glob("*.png"):
         f.unlink()
     tmp.rmdir()
@@ -83,12 +84,12 @@ def main() -> None:
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     render(
-        "urban", 760, {255: "urban_lead_braking.png", 650: "urban_pedestrian.png"}, out, "urban_demo.gif", (200, 420)
+        "urban", 760, {255: "urban_lead_braking.jpg", 650: "urban_pedestrian.jpg"}, out, "urban_demo.gif", (200, 420)
     )
     render(
         "warehouse",
         640,
-        {110: "warehouse_operator.png", 545: "warehouse_forklift.png"},
+        {110: "warehouse_operator.jpg", 545: "warehouse_forklift.jpg"},
         out,
         "warehouse_demo.gif",
         (60, 240),
