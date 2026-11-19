@@ -33,9 +33,7 @@ class UltralyticsDetector(Detector):
         try:
             import ultralytics  # noqa: F401
         except ImportError as exc:  # pragma: no cover - depends on the environment
-            raise ImportError(
-                "The 'ultralytics' backend needs `pip install robopercept[yolo]`."
-            ) from exc
+            raise ImportError("The 'ultralytics' backend needs `pip install robopercept[yolo]`.") from exc
 
         lowered = model.lower()
         if "rtdetr" in lowered:
@@ -102,7 +100,4 @@ class UltralyticsDetector(Detector):
         scores = boxes.conf.cpu().numpy()
         cls = boxes.cls.cpu().numpy().astype(int)
         names = res.names or {}
-        return [
-            Detection(b, float(s), int(c), str(names.get(int(c), c)))
-            for b, s, c in zip(xyxy, scores, cls)
-        ]
+        return [Detection(b, float(s), int(c), str(names.get(int(c), c))) for b, s, c in zip(xyxy, scores, cls)]

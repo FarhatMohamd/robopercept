@@ -55,4 +55,3 @@ def evaluate_synthetic(cfg: Config, frames: int = 900) -> dict[str, float]:
     lv = np.array(levels)
     out["share_warning_or_above"] = float((lv >= 2).mean()) if lv.size else 0.0
     return out
-

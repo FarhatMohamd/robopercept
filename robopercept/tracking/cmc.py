@@ -35,9 +35,7 @@ class CameraMotionCompensator:
             for x1, y1, x2, y2 in (np.asarray(mask_boxes) / self.downscale).astype(int):
                 mask[max(y1, 0) : max(y2, 0), max(x1, 0) : max(x2, 0)] = 0
 
-        pts = cv2.goodFeaturesToTrack(
-            gray, maxCorners=self.max_corners, qualityLevel=0.01, minDistance=8, mask=mask
-        )
+        pts = cv2.goodFeaturesToTrack(gray, maxCorners=self.max_corners, qualityLevel=0.01, minDistance=8, mask=mask)
         if self.prev_gray is not None and self.prev_pts is not None and len(self.prev_pts) >= 8:
             nxt, status, _ = cv2.calcOpticalFlowPyrLK(self.prev_gray, gray, self.prev_pts, None)
             good = status.reshape(-1) == 1

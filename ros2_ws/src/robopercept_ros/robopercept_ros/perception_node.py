@@ -108,10 +108,16 @@ class PerceptionNode(Node):
         self.pub_det.publish(det_array)
         self.pub_markers.publish(self._markers(res, msg.header.stamp))
         self.pub_speed.publish(Float32(data=float(res.decision.speed_factor)))
-        self.pub_safety.publish(String(data=json.dumps({
-            "decision": res.decision.to_dict(),
-            "events": [e.to_dict() for e in res.events],
-        })))
+        self.pub_safety.publish(
+            String(
+                data=json.dumps(
+                    {
+                        "decision": res.decision.to_dict(),
+                        "events": [e.to_dict() for e in res.events],
+                    }
+                )
+            )
+        )
         if self.publish_annotated and self.pub_img.get_subscription_count() > 0:
             out = self.bridge.cv2_to_imgmsg(self.pipeline.render(res), encoding="bgr8")
             out.header = msg.header

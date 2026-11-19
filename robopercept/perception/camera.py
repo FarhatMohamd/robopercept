@@ -46,7 +46,7 @@ class PinholeCamera:
         )
 
     @property
-    def K(self) -> np.ndarray:
+    def K(self) -> np.ndarray:  # noqa: N802 - standard notation for intrinsics
         return np.array([[self.fx, 0, self.cx], [0, self.fy, self.cy], [0, 0, 1]], dtype=np.float64)
 
     @property

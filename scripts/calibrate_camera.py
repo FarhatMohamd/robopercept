@@ -66,8 +66,15 @@ def main() -> None:
             vis = frame.copy()
             if c is not None:
                 cv2.drawChessboardCorners(vis, board, c, True)
-            cv2.putText(vis, f"views: {len(obj_pts)}  SPACE keep  Q finish", (10, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            cv2.putText(
+                vis,
+                f"views: {len(obj_pts)}  SPACE keep  Q finish",
+                (10, 25),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 255, 0),
+                2,
+            )
             cv2.imshow("calibration", vis)
             key = cv2.waitKey(1) & 0xFF
             if key == ord(" ") and c is not None:

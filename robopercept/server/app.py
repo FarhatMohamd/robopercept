@@ -122,12 +122,14 @@ def _make_handler(state: DashboardState) -> type[BaseHTTPRequestHandler]:
                 elif path == "/api/events":
                     self._json(list(state.events))
                 elif path == "/api/health":
-                    self._json({
-                        "status": "ok",
-                        "uptime_s": round(time.time() - state.started, 1),
-                        "frames": state.frames,
-                        "paused": state.paused.is_set(),
-                    })
+                    self._json(
+                        {
+                            "status": "ok",
+                            "uptime_s": round(time.time() - state.started, 1),
+                            "frames": state.frames,
+                            "paused": state.paused.is_set(),
+                        }
+                    )
                 elif path == "/metrics":
                     self._send(200, _prometheus(state).encode(), "text/plain; version=0.0.4")
                 else:

@@ -35,9 +35,7 @@ def xyxy_to_xyah(b: np.ndarray) -> np.ndarray:
 
 def xyah_to_xyxy(s: np.ndarray) -> np.ndarray:
     w = s[2] * s[3]
-    return np.array(
-        [s[0] - w / 2, s[1] - s[3] / 2, s[0] + w / 2, s[1] + s[3] / 2], dtype=np.float32
-    )
+    return np.array([s[0] - w / 2, s[1] - s[3] / 2, s[0] + w / 2, s[1] + s[3] / 2], dtype=np.float32)
 
 
 class _STrack:
@@ -147,9 +145,7 @@ class ByteTracker:
         refound: list[_STrack] = []
 
         # 1) confident detections vs. every live track
-        matches, u_tracks, u_high = linear_assignment(
-            self._cost(pool, high, fuse=True), cfg.match_thresh
-        )
+        matches, u_tracks, u_high = linear_assignment(self._cost(pool, high, fuse=True), cfg.match_thresh)
         for ti, di in matches:
             t = pool[ti]
             was_lost = t.state == TrackState.LOST
@@ -158,9 +154,7 @@ class ByteTracker:
 
         # 2) low-confidence detections vs. remaining *tracked* tracks
         remaining = [pool[i] for i in u_tracks if pool[i].state == TrackState.TRACKED]
-        matches, u_rem, _ = linear_assignment(
-            self._cost(remaining, low, fuse=False), cfg.second_match_thresh
-        )
+        matches, u_rem, _ = linear_assignment(self._cost(remaining, low, fuse=False), cfg.second_match_thresh)
         for ti, di in matches:
             remaining[ti].update(low[di], self.frame_id)
             activated.append(remaining[ti])
@@ -169,9 +163,7 @@ class ByteTracker:
 
         # 3) unconfirmed tracks (seen once) vs. leftover confident detections
         left_high = [high[i] for i in u_high]
-        matches, u_unc, u_new = linear_assignment(
-            self._cost(unconfirmed, left_high, fuse=True), 0.7
-        )
+        matches, u_unc, u_new = linear_assignment(self._cost(unconfirmed, left_high, fuse=True), 0.7)
         for ti, di in matches:
             t = unconfirmed[ti]
             t.update(left_high[di], self.frame_id)
@@ -203,11 +195,7 @@ class ByteTracker:
 
         live = {id(t): t for t in activated + refound}
         self.tracked = [t for t in live.values() if t.state == TrackState.TRACKED]
-        self.lost = [
-            t
-            for t in pool
-            if t.state == TrackState.LOST and id(t) not in live
-        ]
+        self.lost = [t for t in pool if t.state == TrackState.LOST and id(t) not in live]
         self._dedupe()
 
         out: list[Track] = []

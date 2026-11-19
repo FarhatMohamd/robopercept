@@ -97,19 +97,43 @@ class Scenario:
 def _urban_actors() -> list[Actor]:
     return [
         # Lead vehicle: cruises, brakes hard, then pulls away (forward-collision case)
-        Actor("lead", "car", (1.8, 1.5, 4.4), (60, 60, 200), 0.0, 28.0,
-              _piecewise([(0, 10.0), (5.0, 10.0), (7.5, 2.0), (13.0, 2.0), (16.0, 14.0)])),
+        Actor(
+            "lead",
+            "car",
+            (1.8, 1.5, 4.4),
+            (60, 60, 200),
+            0.0,
+            28.0,
+            _piecewise([(0, 10.0), (5.0, 10.0), (7.5, 2.0), (13.0, 2.0), (16.0, 14.0)]),
+        ),
         Actor("oncoming1", "car", (1.8, 1.45, 4.3), (200, 170, 60), -3.5, 90.0, _const(0.0, -11.0), spawn_t=1.0),
         Actor("oncoming2", "truck", (2.5, 3.2, 8.0), (80, 120, 160), -3.5, 120.0, _const(0.0, -9.0), spawn_t=8.0),
         Actor("cyclist", "bicycle", (0.6, 1.1, 1.8), (170, 80, 170), 3.7, 40.0, _const(0.0, 6.0), spawn_t=9.0),
         Actor("walker", "person", (0.5, 1.65, 0.4), (200, 100, 60), -6.6, 45.0, _const(0.0, 1.2), spawn_t=2.0),
         Actor("parked", "truck", (2.5, 3.2, 7.5), (90, 90, 90), 6.4, 95.0, _const(0.0, 0.0), spawn_t=17.0),
         # Pedestrian crossing in front of the ego (vulnerable road user case)
-        Actor("crossing", "person", (0.5, 1.75, 0.4), (40, 140, 240), 5.0, 30.0, _const(-1.4, 0.0),
-              spawn_t=19.0, lifetime=9.0),
+        Actor(
+            "crossing",
+            "person",
+            (0.5, 1.75, 0.4),
+            (40, 140, 240),
+            5.0,
+            30.0,
+            _const(-1.4, 0.0),
+            spawn_t=19.0,
+            lifetime=9.0,
+        ),
         *[
-            Actor(f"cone{i}", "traffic cone", (0.4, 0.7, 0.4), (30, 120, 250), 5.4, 60.0 + 5 * i,
-                  _const(0.0, 0.0), spawn_t=24.0)
+            Actor(
+                f"cone{i}",
+                "traffic cone",
+                (0.4, 0.7, 0.4),
+                (30, 120, 250),
+                5.4,
+                60.0 + 5 * i,
+                _const(0.0, 0.0),
+                spawn_t=24.0,
+            )
             for i in range(4)
         ],
     ]
@@ -117,8 +141,16 @@ def _urban_actors() -> list[Actor]:
 
 def _warehouse_actors() -> list[Actor]:
     shelves = [
-        Actor(f"shelf{side}{i}", "shelf", (1.2, 2.4, 3.0), (70, 90, 120), side * 3.4, 4.0 + 5.0 * i,
-              _const(0.0, 0.0), detectable=False)
+        Actor(
+            f"shelf{side}{i}",
+            "shelf",
+            (1.2, 2.4, 3.0),
+            (70, 90, 120),
+            side * 3.4,
+            4.0 + 5.0 * i,
+            _const(0.0, 0.0),
+            detectable=False,
+        )
         for side in (-1, 1)
         for i in range(10)
     ]
@@ -134,10 +166,28 @@ def _warehouse_actors() -> list[Actor]:
     return [
         *shelves,
         Actor("operator1", "person", (0.5, 1.75, 0.4), (40, 170, 240), 0.3, 11.0, operator1),
-        Actor("operator2", "person", (0.5, 1.7, 0.4), (220, 120, 70), 2.6, 8.0, _const(-0.9, 0.0),
-              spawn_t=11.0, lifetime=7.0),
-        Actor("forklift", "forklift", (1.2, 2.1, 2.4), (30, 160, 230), -2.6, 11.0, _const(1.0, 0.0),
-              spawn_t=17.0, lifetime=6.0),
+        Actor(
+            "operator2",
+            "person",
+            (0.5, 1.7, 0.4),
+            (220, 120, 70),
+            2.6,
+            8.0,
+            _const(-0.9, 0.0),
+            spawn_t=11.0,
+            lifetime=7.0,
+        ),
+        Actor(
+            "forklift",
+            "forklift",
+            (1.2, 2.1, 2.4),
+            (30, 160, 230),
+            -2.6,
+            11.0,
+            _const(1.0, 0.0),
+            spawn_t=17.0,
+            lifetime=6.0,
+        ),
         Actor("pallet", "pallet", (1.2, 0.15, 0.8), (60, 130, 170), -2.1, 20.0, _const(0.0, 0.0)),
     ]
 
@@ -273,7 +323,9 @@ class SyntheticScene:
                 start = -(self.s % (dash + gap))
                 segs = [(z0, z0 + dash) for z0 in np.arange(start, far, dash + gap) if z0 + dash > 0.5]
             for z0, z1 in segs:
-                poly = self._ground_poly([lx - hw, lx + hw, lx + hw, lx - hw], [max(z0, 0.5), max(z0, 0.5), z1, z1], ego_x)
+                poly = self._ground_poly(
+                    [lx - hw, lx + hw, lx + hw, lx - hw], [max(z0, 0.5), max(z0, 0.5), z1, z1], ego_x
+                )
                 if poly is not None:
                     cv2.fillPoly(img, [poly], color, lineType=cv2.LINE_AA)
         return img
@@ -283,9 +335,7 @@ class SyntheticScene:
         cam_h = self.camera.height
         yaw = a.heading(self.loop_t)
         c, s = math.cos(yaw), math.sin(yaw)
-        local = np.array(
-            [[dx, dz] for dz in (0.0, length) for dx in (-w / 2, w / 2)], dtype=np.float64
-        )
+        local = np.array([[dx, dz] for dz in (0.0, length) for dx in (-w / 2, w / 2)], dtype=np.float64)
         local[:, 1] -= length / 2 if a.class_name in ("person", "bicycle") else 0.0
         rx = local[:, 0] * c + local[:, 1] * s
         rz = -local[:, 0] * s + local[:, 1] * c
@@ -315,12 +365,14 @@ class SyntheticScene:
             # Windscreen / cabin hint and tail lights on the visible face
             f = pts[[0, 1, 5, 4]].astype(np.float64)
             top_l, top_r, bot_l, bot_r = f[3], f[2], f[0], f[1]
-            win = np.array([
-                top_l + 0.15 * (top_r - top_l) + 0.12 * (bot_l - top_l),
-                top_r - 0.15 * (top_r - top_l) + 0.12 * (bot_r - top_r),
-                top_r - 0.15 * (top_r - top_l) + 0.45 * (bot_r - top_r),
-                top_l + 0.15 * (top_r - top_l) + 0.45 * (bot_l - top_l),
-            ]).astype(np.int32)
+            win = np.array(
+                [
+                    top_l + 0.15 * (top_r - top_l) + 0.12 * (bot_l - top_l),
+                    top_r - 0.15 * (top_r - top_l) + 0.12 * (bot_r - top_r),
+                    top_r - 0.15 * (top_r - top_l) + 0.45 * (bot_r - top_r),
+                    top_l + 0.15 * (top_r - top_l) + 0.45 * (bot_l - top_l),
+                ]
+            ).astype(np.int32)
             cv2.fillPoly(img, [win], (60, 50, 40), cv2.LINE_AA)
             for t in (0.12, 0.88):
                 p = (bot_l + t * (bot_r - bot_l) + 0.3 * (top_l - bot_l)).astype(int)
@@ -360,8 +412,13 @@ class SyntheticScene:
         cx = (x1 + x2) / 2
         r = max(2, int(0.17 * h))
         cv2.circle(img, (int(cx), int(y2 - r)), r, (30, 30, 30), max(1, r // 4), cv2.LINE_AA)
-        cv2.rectangle(img, (int(cx - 0.3 * w), int(y1 + 0.18 * h)), (int(cx + 0.3 * w), int(y2 - 1.6 * r)),
-                      tuple(int(v) for v in col), -1)
+        cv2.rectangle(
+            img,
+            (int(cx - 0.3 * w), int(y1 + 0.18 * h)),
+            (int(cx + 0.3 * w), int(y2 - 1.6 * r)),
+            tuple(int(v) for v in col),
+            -1,
+        )
         hr = max(2, int(0.09 * h))
         cv2.circle(img, (int(cx), int(y1 + hr)), hr, (150, 180, 220), -1, cv2.LINE_AA)
 
@@ -393,9 +450,9 @@ class SyntheticScene:
         for i, (_, a, _, box, _) in enumerate(visible):
             if not a.detectable:
                 continue
-            clipped = np.array([
-                max(box[0], 0), max(box[1], 0), min(box[2], self.width - 1), min(box[3], self.height - 1)
-            ])
+            clipped = np.array(
+                [max(box[0], 0), max(box[1], 0), min(box[2], self.width - 1), min(box[3], self.height - 1)]
+            )
             area = max((clipped[2] - clipped[0]) * (clipped[3] - clipped[1]), 1.0)
             occluded = 0.0
             for other in boxes[i + 1 :]:  # nearer objects drawn on top
@@ -405,14 +462,16 @@ class SyntheticScene:
             visibility = float(np.clip(1.0 - occluded / area, 0.0, 1.0))
             if visibility < 0.15 or (clipped[3] - clipped[1]) < 4:
                 continue
-            gt.append({
-                "gt_id": a.gt_id,
-                "class_name": a.class_name,
-                "box": clipped.tolist(),
-                "visibility": visibility,
-                "x": float(a.x - ego_x),
-                "z": float(a.z - self.s - (a.size[2] / 2 if a.class_name in ("person", "bicycle") else 0.0)),
-            })
+            gt.append(
+                {
+                    "gt_id": a.gt_id,
+                    "class_name": a.class_name,
+                    "box": clipped.tolist(),
+                    "visibility": visibility,
+                    "x": float(a.x - ego_x),
+                    "z": float(a.z - self.s - (a.size[2] / 2 if a.class_name in ("person", "bicycle") else 0.0)),
+                }
+            )
         meta = {
             "ground_truth": gt,
             "ego_speed": self.ego_speed,

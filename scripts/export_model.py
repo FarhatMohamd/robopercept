@@ -48,8 +48,10 @@ def main() -> None:
             shutil.rmtree(target) if target.is_dir() else target.unlink()
         shutil.move(str(exported), target)
     print(f"Exported model: {target}")
-    print("Use it with:  robopercept run --set detector.backend="
-          f"{'onnx' if args.format == 'onnx' else 'ultralytics'} --set detector.model={target}")
+    print(
+        "Use it with:  robopercept run --set detector.backend="
+        f"{'onnx' if args.format == 'onnx' else 'ultralytics'} --set detector.model={target}"
+    )
 
 
 if __name__ == "__main__":

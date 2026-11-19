@@ -41,5 +41,5 @@ class Detector(ABC):
     def warmup(self, shape: tuple[int, int, int] = (640, 640, 3)) -> None:
         self._predict(np.zeros(shape, dtype=np.uint8), None)
 
-    def close(self) -> None:  # pragma: no cover - optional hook
-        pass
+    def close(self) -> None:  # noqa: B027 - optional hook, intentionally empty
+        return None

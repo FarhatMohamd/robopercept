@@ -130,9 +130,7 @@ class RiskAssessor:
                 decision.min_distance = min(decision.min_distance, tr.world.distance)
             decision.min_ttc = min(decision.min_ttc, ttc)
             if tr.risk > decision.level or (
-                tr.risk == decision.level
-                and tr.risk > RiskLevel.SAFE
-                and ttc < decision.min_ttc + 1e-9
+                tr.risk == decision.level and tr.risk > RiskLevel.SAFE and ttc < decision.min_ttc + 1e-9
             ):
                 decision.level = tr.risk
                 decision.critical_track = tr.track_id if tr.risk > RiskLevel.SAFE else None
@@ -164,8 +162,15 @@ class RiskAssessor:
             if t - self._last_event_t.get(key, -1e9) >= self.event_cooldown_s:
                 self._last_event_t[key] = t
                 events.append(
-                    Event(kind, frame_index, t, decision.reason, decision.critical_track, decision.level,
-                          {"speed_factor": decision.speed_factor})
+                    Event(
+                        kind,
+                        frame_index,
+                        t,
+                        decision.reason,
+                        decision.critical_track,
+                        decision.level,
+                        {"speed_factor": decision.speed_factor},
+                    )
                 )
         self._last_level = decision.level
 

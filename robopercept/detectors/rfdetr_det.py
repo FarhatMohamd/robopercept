@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 import cv2
@@ -22,9 +23,7 @@ _SIZES = {
 class RFDETRDetector(Detector):
     name = "rfdetr"
 
-    def __init__(
-        self, model: str = "small", conf: float = 0.3, classes: list[str] | None = None
-    ) -> None:
+    def __init__(self, model: str = "small", conf: float = 0.3, classes: list[str] | None = None) -> None:
         super().__init__(conf, classes)
         try:
             import rfdetr
@@ -45,10 +44,8 @@ class RFDETRDetector(Detector):
         except ImportError:  # pragma: no cover
             self._names = {}
         if hasattr(self.model, "optimize_for_inference"):
-            try:
+            with contextlib.suppress(Exception):  # optional speed-up only
                 self.model.optimize_for_inference()
-            except Exception:  # pragma: no cover - optional speed-up only
-                pass
 
     @property
     def class_names(self) -> list[str]:

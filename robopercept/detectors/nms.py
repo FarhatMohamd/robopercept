@@ -19,9 +19,7 @@ def xywh_to_xyxy(boxes: np.ndarray) -> np.ndarray:
 
 
 def box_area(boxes: np.ndarray) -> np.ndarray:
-    return np.clip(boxes[..., 2] - boxes[..., 0], 0, None) * np.clip(
-        boxes[..., 3] - boxes[..., 1], 0, None
-    )
+    return np.clip(boxes[..., 2] - boxes[..., 0], 0, None) * np.clip(boxes[..., 3] - boxes[..., 1], 0, None)
 
 
 def iou_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -62,9 +60,7 @@ def nms(boxes: np.ndarray, scores: np.ndarray, iou_thresh: float = 0.5) -> np.nd
     return np.asarray(keep, dtype=np.int64)
 
 
-def batched_nms(
-    boxes: np.ndarray, scores: np.ndarray, class_ids: np.ndarray, iou_thresh: float = 0.5
-) -> np.ndarray:
+def batched_nms(boxes: np.ndarray, scores: np.ndarray, class_ids: np.ndarray, iou_thresh: float = 0.5) -> np.ndarray:
     """Class-aware NMS using the coordinate offset trick."""
     if len(boxes) == 0:
         return np.zeros((0,), dtype=np.int64)

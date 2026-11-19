@@ -61,9 +61,7 @@ class BoxKalmanFilter:
         R = np.diag(np.square([self.std_pos * h, self.std_pos * h, 1e-1, self.std_pos * h]))
         return self.H @ mean, self.H @ cov @ self.H.T + R
 
-    def update(
-        self, mean: np.ndarray, cov: np.ndarray, z: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray]:
+    def update(self, mean: np.ndarray, cov: np.ndarray, z: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         proj_mean, proj_cov = self.project(mean, cov)
         # Solve instead of inverting for numerical stability
         gain = np.linalg.solve(proj_cov, (cov @ self.H.T).T).T

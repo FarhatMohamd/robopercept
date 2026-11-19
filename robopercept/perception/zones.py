@@ -26,9 +26,7 @@ class _ZoneState:
 
 
 class ZoneMonitor:
-    def __init__(
-        self, zones: list[ZoneConfig], image_size: tuple[int, int], exit_frames: int = 8
-    ) -> None:
+    def __init__(self, zones: list[ZoneConfig], image_size: tuple[int, int], exit_frames: int = 8) -> None:
         self.zones = zones
         # A track must stay outside this many frames before "exit" (debounce)
         self.exit_frames = exit_frames
@@ -69,27 +67,43 @@ class ZoneMonitor:
                     st.inside_since[tr.track_id] = t
                     if zone.dwell_s <= 0:
                         events.append(
-                            Event("zone_enter", frame_index, t,
-                                  f"{tr.class_name} #{tr.track_id} entered '{zone.name}'",
-                                  tr.track_id, level, {"zone": zone.name})
+                            Event(
+                                "zone_enter",
+                                frame_index,
+                                t,
+                                f"{tr.class_name} #{tr.track_id} entered '{zone.name}'",
+                                tr.track_id,
+                                level,
+                                {"zone": zone.name},
+                            )
                         )
                         st.dwell_reported.add(tr.track_id)
-                elif (
-                    tr.track_id not in st.dwell_reported
-                    and t - st.inside_since[tr.track_id] >= zone.dwell_s
-                ):
+                elif tr.track_id not in st.dwell_reported and t - st.inside_since[tr.track_id] >= zone.dwell_s:
                     st.dwell_reported.add(tr.track_id)
                     events.append(
-                        Event("zone_dwell", frame_index, t,
-                              f"{tr.class_name} #{tr.track_id} stayed {zone.dwell_s:.0f}s in '{zone.name}'",
-                              tr.track_id, level, {"zone": zone.name})
+                        Event(
+                            "zone_dwell",
+                            frame_index,
+                            t,
+                            f"{tr.class_name} #{tr.track_id} stayed {zone.dwell_s:.0f}s in '{zone.name}'",
+                            tr.track_id,
+                            level,
+                            {"zone": zone.name},
+                        )
                     )
             for tid in list(st.inside_since):
                 if tid not in present and frame_index - st.last_seen.get(tid, frame_index) >= self.exit_frames:
                     if tid in st.dwell_reported:
                         events.append(
-                            Event("zone_exit", frame_index, t, f"#{tid} left '{zone.name}'",
-                                  tid, RiskLevel.SAFE, {"zone": zone.name})
+                            Event(
+                                "zone_exit",
+                                frame_index,
+                                t,
+                                f"#{tid} left '{zone.name}'",
+                                tid,
+                                RiskLevel.SAFE,
+                                {"zone": zone.name},
+                            )
                         )
                     st.inside_since.pop(tid)
                     st.dwell_reported.discard(tid)

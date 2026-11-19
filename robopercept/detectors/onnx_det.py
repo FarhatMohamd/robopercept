@@ -103,9 +103,7 @@ def detect_format(out: np.ndarray) -> str:
     return "yolo"
 
 
-def scale_boxes(
-    boxes: np.ndarray, scale: float, pad: tuple[float, float], shape: tuple[int, int]
-) -> np.ndarray:
+def scale_boxes(boxes: np.ndarray, scale: float, pad: tuple[float, float], shape: tuple[int, int]) -> np.ndarray:
     """Map boxes from letterboxed input space back to the original image."""
     boxes = boxes.copy()
     boxes[:, [0, 2]] = (boxes[:, [0, 2]] - pad[0]) / scale
@@ -178,9 +176,7 @@ class OnnxDetector(Detector):
         blob = cv2.cvtColor(padded, cv2.COLOR_BGR2RGB).transpose(2, 0, 1)[None]
         blob = np.ascontiguousarray(blob, dtype=np.float32) / 255.0
         output = self.session.run(None, {self.input_name: blob})[0]
-        boxes, scores, cls = decode_output(
-            output, self.fmt, self.conf, self.iou, self.input_size, self.max_det
-        )
+        boxes, scores, cls = decode_output(output, self.fmt, self.conf, self.iou, self.input_size, self.max_det)
         boxes = scale_boxes(boxes, scale, pad, image.shape[:2])
         names = self._names
         return [

@@ -37,7 +37,7 @@ class JsonlSink:
     def __init__(self, path: str) -> None:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        self.fh = open(p, "w", encoding="utf-8")
+        self.fh = open(p, "w", encoding="utf-8")  # noqa: SIM115 - kept open for streaming
 
     def write(self, result: FrameResult, extra: dict[str, Any] | None = None) -> None:
         record = result.to_dict()

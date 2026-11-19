@@ -6,7 +6,6 @@ import argparse
 import json
 import logging
 import sys
-from pathlib import Path
 
 from . import __version__
 from .config import Config, dump_config, load_config
@@ -68,8 +67,10 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg = _load(args)
     summary = _run_pipeline(cfg)
     total = summary["latency_ms"].get("total", {})
-    print(f"Processed {summary['frames']} frames, latency mean {total.get('mean', 0):.1f} ms, "
-          f"p95 {total.get('p95', 0):.1f} ms")
+    print(
+        f"Processed {summary['frames']} frames, latency mean {total.get('mean', 0):.1f} ms, "
+        f"p95 {total.get('p95', 0):.1f} ms"
+    )
     return 0
 
 
@@ -127,7 +128,9 @@ def cmd_config(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="robopercept", description="Real-time perception for autonomous robots and vehicles")
+    p = argparse.ArgumentParser(
+        prog="robopercept", description="Real-time perception for autonomous robots and vehicles"
+    )
     p.add_argument("--version", action="version", version=f"robopercept {__version__}")
     p.add_argument("-v", "--verbose", action="store_true")
     sub = p.add_subparsers(dest="command", required=True)
@@ -177,7 +180,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO, format="%(levelname)s %(name)s: %(message)s"
+    )
     return int(args.func(args) or 0)
 
 

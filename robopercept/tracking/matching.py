@@ -10,9 +10,7 @@ except ImportError:  # pragma: no cover - scipy is a hard dependency, fallback k
     _lsa = None
 
 
-def linear_assignment(
-    cost: np.ndarray, thresh: float
-) -> tuple[list[tuple[int, int]], list[int], list[int]]:
+def linear_assignment(cost: np.ndarray, thresh: float) -> tuple[list[tuple[int, int]], list[int], list[int]]:
     """Minimum-cost matching, rejecting pairs whose cost exceeds ``thresh``.
 
     Returns ``(matches, unmatched_rows, unmatched_cols)``.

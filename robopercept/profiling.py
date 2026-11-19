@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
-from contextlib import contextmanager
 from collections.abc import Iterator
+from contextlib import contextmanager
 
 import numpy as np
 

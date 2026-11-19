@@ -158,9 +158,7 @@ class SafetyDecision:
             "reason": self.reason,
             "critical_track": self.critical_track,
             "min_ttc": None if not np.isfinite(self.min_ttc) else round(float(self.min_ttc), 2),
-            "min_distance": None
-            if not np.isfinite(self.min_distance)
-            else round(float(self.min_distance), 2),
+            "min_distance": None if not np.isfinite(self.min_distance) else round(float(self.min_distance), 2),
         }
 
 
@@ -217,9 +215,7 @@ class FrameResult:
             if self.lanes is None
             else {
                 "valid": self.lanes.valid,
-                "offset_m": None
-                if self.lanes.offset_m is None
-                else round(float(self.lanes.offset_m), 2),
+                "offset_m": None if self.lanes.offset_m is None else round(float(self.lanes.offset_m), 2),
                 "departure": bool(self.lanes.departure),
             },
             "timings_ms": {k: round(v, 2) for k, v in self.timings_ms.items()},

@@ -96,16 +96,20 @@ class Pipeline:
                 res.lanes = self.lanes.detect(img)
 
         with timer.stage("safety"):
-            decision, events = self.risk.assess(
-                tracks, frame.index, frame.timestamp, frame.meta.get("ego_speed")
-            )
+            decision, events = self.risk.assess(tracks, frame.index, frame.timestamp, frame.meta.get("ego_speed"))
             if self.zones is not None:
                 events += self.zones.update(tracks, frame.index, frame.timestamp)
             departing = bool(res.lanes is not None and res.lanes.departure)
             if departing and not self._departing:
                 events.append(
-                    Event("lane_departure", frame.index, frame.timestamp,
-                          f"lane departure ({res.lanes.offset_m:+.2f} m)", None, RiskLevel.CAUTION)
+                    Event(
+                        "lane_departure",
+                        frame.index,
+                        frame.timestamp,
+                        f"lane departure ({res.lanes.offset_m:+.2f} m)",
+                        None,
+                        RiskLevel.CAUTION,
+                    )
                 )
             self._departing = departing
         res.tracks = tracks
@@ -146,8 +150,12 @@ class Pipeline:
         draw_lanes(out, res.lanes)
         if self.zones is not None:
             active = {z for t in res.tracks for z in t.zones}
-            draw_zones(out, self.zones.polys if all(z.frame == "image" for z in self.cfg.zones) else [],
-                       [z.name for z in self.cfg.zones], active)
+            draw_zones(
+                out,
+                self.zones.polys if all(z.frame == "image" for z in self.cfg.zones) else [],
+                [z.name for z in self.cfg.zones],
+                active,
+            )
         for tr in sorted(res.tracks, key=lambda t: -(t.world.z if t.world else 0)):
             draw_track(out, tr, out_cfg.draw_trails)
         draw_hud(out, res, self.timer.fps)

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from ..tracking.kalman import PointKalmanFilter
 from ..structures import Track, WorldState
+from ..tracking.kalman import PointKalmanFilter
 
 
 class GroundMotionEstimator:
@@ -21,9 +21,7 @@ class GroundMotionEstimator:
         self.last_t: dict[int, float] = {}
         self.idle: dict[int, int] = {}
 
-    def update(
-        self, track: Track, x: float, z: float, sigma: float, t: float, x_sigma: float = 0.3
-    ) -> WorldState:
+    def update(self, track: Track, x: float, z: float, sigma: float, t: float, x_sigma: float = 0.3) -> WorldState:
         tid = track.track_id
         # Lateral error: box-centre error plus range error propagated through the bearing
         sig = np.array([x_sigma + sigma * abs(x) / max(z, 1.0), max(0.1, sigma)])

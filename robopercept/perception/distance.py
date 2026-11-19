@@ -121,6 +121,4 @@ class DistanceEstimator:
             sigma = float(np.hypot(sigma, 0.5 * spread))
         z = float(min(z, self.cfg.max_range_m))
         x, x_sigma = self._lateral(det, z)
-        return RangeEstimate(
-            x=x, z=z, sigma=sigma, cues={k: v for k, (v, _) in cues.items()}, x_sigma=x_sigma
-        )
+        return RangeEstimate(x=x, z=z, sigma=sigma, cues={k: v for k, (v, _) in cues.items()}, x_sigma=x_sigma)

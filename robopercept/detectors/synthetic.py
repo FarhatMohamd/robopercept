@@ -15,7 +15,15 @@ from ..structures import Detection
 from .base import Detector
 
 SYNTHETIC_NAMES = [
-    "person", "bicycle", "car", "motorcycle", "bus", "truck", "traffic cone", "forklift", "pallet",
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "bus",
+    "truck",
+    "traffic cone",
+    "forklift",
+    "pallet",
 ]
 
 
