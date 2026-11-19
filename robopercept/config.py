@@ -212,10 +212,29 @@ def apply_overrides(data: dict[str, Any], overrides: list[str]) -> dict[str, Any
     return data
 
 
+PRESETS_DIR = Path(__file__).resolve().parent / "presets"
+
+
+def resolve_config_path(path: str | Path) -> Path:
+    """Accept a file path or the name of a bundled preset (``urban``, ``warehouse``)."""
+    p = Path(path)
+    if p.exists():
+        return p
+    preset = PRESETS_DIR / f"{p.stem}.yaml"
+    if preset.exists():
+        return preset
+    raise FileNotFoundError(f"Configuration not found: {path} (presets: {list_presets()})")
+
+
+def list_presets() -> list[str]:
+    return sorted(p.stem for p in PRESETS_DIR.glob("*.yaml"))
+
+
 def load_config(path: str | Path | None = None, overrides: list[str] | None = None) -> Config:
-    """Load a YAML configuration file and apply optional dotted overrides."""
+    """Load a YAML file (or bundled preset) and apply optional dotted overrides."""
     data: dict[str, Any] = {}
     if path is not None:
+        path = resolve_config_path(path)
         with open(path, encoding="utf-8") as fh:
             data = yaml.safe_load(fh) or {}
     if overrides:

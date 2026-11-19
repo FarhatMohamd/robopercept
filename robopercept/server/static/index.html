@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoboPercept · live perception</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.4"/>
+        <circle cx="16" cy="16" r="5" fill="currentColor"/>
+        <path d="M16 3v5M16 24v5M3 16h5M24 16h5" stroke="currentColor" stroke-width="2.4"/>
+      </svg>
+      <span>RoboPercept</span>
+    </div>
+    <div class="header-right">
+      <span id="conn" class="pill pill-off">offline</span>
+      <span id="uptime" class="muted"></span>
+      <button id="pause" class="btn">Pause</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="left">
+      <div class="card video-card">
+        <img id="video" src="/stream.mjpg" alt="Annotated camera stream">
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span>Last 30 s</span>
+          <span class="legend">
+            <i style="--c: var(--blue)"></i>nearest in-path object (m)
+            <i style="--c: var(--amber)"></i>min TTC (s)
+            <i style="--c: var(--green)"></i>speed factor
+          </span>
+        </div>
+        <canvas id="chart" height="170"></canvas>
+      </div>
+    </section>
+
+    <section class="right">
+      <div id="decision" class="card decision level-safe">
+        <div class="decision-level" id="level">SAFE</div>
+        <div class="decision-reason" id="reason">clear</div>
+        <div class="gauge"><div id="gauge-fill"></div></div>
+        <div class="gauge-label"><span>speed factor</span><span id="speed">1.00</span></div>
+      </div>
+
+      <div class="tiles">
+        <div class="tile"><span class="tile-v" id="fps">–</span><span class="tile-k">FPS</span></div>
+        <div class="tile"><span class="tile-v" id="lat">–</span><span class="tile-k">latency p95 (ms)</span></div>
+        <div class="tile"><span class="tile-v" id="ntracks">–</span><span class="tile-k">tracks</span></div>
+        <div class="tile"><span class="tile-v" id="ego">–</span><span class="tile-k">ego speed (km/h)</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Stage latency</span><span class="muted" id="frame"></span></div>
+        <div id="stages"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Tracked objects</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>class</th><th>dist</th><th>TTC</th><th>risk</th></tr></thead>
+          <tbody id="tracks"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>Events</span></div>
+        <ul id="events"></ul>
+      </div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

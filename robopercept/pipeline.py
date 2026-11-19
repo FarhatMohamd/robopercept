@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from collections.abc import Callable, Iterator
 
 import cv2
@@ -158,8 +160,15 @@ class Pipeline:
         self,
         source: FrameSource | None = None,
         on_result: Callable[[FrameResult, np.ndarray], None] | None = None,
+        realtime: bool = False,
+        pause: threading.Event | None = None,
     ) -> Iterator[tuple[FrameResult, np.ndarray]]:
-        """Iterate over processed frames, handling every configured output."""
+        """Iterate over processed frames, handling every configured output.
+
+        ``realtime`` paces recorded sources (files, simulator) at their nominal
+        frame rate; live sources are never throttled. ``pause`` suspends
+        processing while the event is set (used by the dashboard).
+        """
         cfg = self.cfg
         if source is None:
             synthetic = cfg.source.uri.startswith("synthetic")
@@ -175,8 +184,18 @@ class Pipeline:
         mqtt = MqttSink(cfg.mqtt.host, cfg.mqtt.port, cfg.mqtt.topic) if cfg.mqtt.enabled else None
         if mqtt is not None:
             self.bus.subscribe(mqtt.publish_event)
+        period = 1.0 / max(source.fps, 1e-3)
+        next_t = time.perf_counter()
         try:
             for frame in source:
+                while pause is not None and pause.is_set():
+                    time.sleep(0.05)
+                    next_t = time.perf_counter()
+                if realtime and not source.live:
+                    delay = next_t - time.perf_counter()
+                    if delay > 0:
+                        time.sleep(delay)
+                    next_t = max(next_t + period, time.perf_counter() - period)
                 res = self.process(frame)
                 source.feedback(res.decision.speed_factor)
                 vis = self.render(res)
@@ -205,9 +224,15 @@ class Pipeline:
             if out.show:
                 cv2.destroyAllWindows()
 
-    def run(self, source: FrameSource | None = None, on_result=None) -> dict:
+    def run(
+        self,
+        source: FrameSource | None = None,
+        on_result: Callable[[FrameResult, np.ndarray], None] | None = None,
+        realtime: bool = False,
+        pause: threading.Event | None = None,
+    ) -> dict:
         n = 0
-        for _ in self.stream(source, on_result):
+        for _ in self.stream(source, on_result, realtime, pause):
             n += 1
         return {"frames": n, "latency_ms": self.timer.summary()}
 
