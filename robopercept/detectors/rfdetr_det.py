@@ -7,7 +7,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ..types import Detection
+from ..structures import Detection
 from .base import Detector
 
 _SIZES = {

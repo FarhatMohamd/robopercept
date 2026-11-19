@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 from ..config import LaneConfig
-from ..types import LaneEstimate
+from ..structures import LaneEstimate
 
 
 class LaneDetector:
@@ -20,6 +20,7 @@ class LaneDetector:
         self._left: np.ndarray | None = None
         self._right: np.ndarray | None = None
         self._miss = 0
+        self._departing = False
 
     def _roi_mask(self, h: int, w: int) -> np.ndarray:
         top = int(h * self.cfg.roi_top_ratio)
@@ -68,7 +69,7 @@ class LaneDetector:
         left_pts: list[tuple[float, float]] = []
         right_pts: list[tuple[float, float]] = []
         if lines is not None:
-            for x1, y1, x2, y2 in lines[:, 0]:
+            for x1, y1, x2, y2 in lines.reshape(-1, 4).astype(float):
                 if x2 == x1:
                     continue
                 slope = (y2 - y1) / (x2 - x1)
@@ -103,7 +104,11 @@ class LaneDetector:
                 centre = (xl + xr) / 2.0
                 # Positive offset: the vehicle sits to the right of the lane centre
                 est.offset_m = (w / 2.0 - centre) / width_px * self.cfg.lane_width_m
-                est.departure = abs(est.offset_m) > self.cfg.departure_threshold_m
+                # Hysteresis avoids flickering alarms around the threshold
+                thr = self.cfg.departure_threshold_m
+                limit = thr - 0.1 if self._departing else thr
+                self._departing = abs(est.offset_m) > limit
+                est.departure = self._departing
             else:
                 est.left = est.right = None
         return est

@@ -6,7 +6,7 @@ import logging
 from collections import deque
 from collections.abc import Callable
 
-from ..types import Event
+from ..structures import Event
 
 log = logging.getLogger(__name__)
 

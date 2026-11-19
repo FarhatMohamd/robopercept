@@ -11,10 +11,12 @@ from typing import Any
 
 import numpy as np
 
-from ..types import Detection
+from ..structures import Detection
 from .base import Detector
 
-SYNTHETIC_NAMES = ["person", "bicycle", "car", "motorcycle", "bus", "truck", "traffic cone"]
+SYNTHETIC_NAMES = [
+    "person", "bicycle", "car", "motorcycle", "bus", "truck", "traffic cone", "forklift", "pallet",
+]
 
 
 class SyntheticDetector(Detector):

@@ -7,7 +7,7 @@ import math
 import cv2
 import numpy as np
 
-from ..types import FrameResult, LaneEstimate, RiskLevel, Track
+from ..structures import FrameResult, LaneEstimate, RiskLevel, Track
 
 # BGR colours
 RISK_COLORS = {

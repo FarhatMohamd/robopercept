@@ -19,7 +19,7 @@ import math
 import numpy as np
 
 from ..config import SafetyConfig
-from ..types import Event, RiskLevel, SafetyDecision, Track
+from ..structures import Event, RiskLevel, SafetyDecision, Track
 
 
 def time_to_collision(
@@ -54,6 +54,8 @@ class RiskAssessor:
         self._counters: dict[int, tuple[RiskLevel, int]] = {}
         self._reported: dict[int, RiskLevel] = {}
         self._last_level = RiskLevel.SAFE
+        self._last_event_t: dict[tuple[str, int | None], float] = {}
+        self.event_cooldown_s = 2.0
 
     def _raw_level(self, tr: Track) -> tuple[RiskLevel, float, bool]:
         cfg = self.cfg
@@ -144,10 +146,13 @@ class RiskAssessor:
                 decision.reason = what
         if decision.level > self._last_level and decision.level >= RiskLevel.WARNING:
             kind = "collision_critical" if decision.level == RiskLevel.CRITICAL else "collision_warning"
-            events.append(
-                Event(kind, frame_index, t, decision.reason, decision.critical_track, decision.level,
-                      {"speed_factor": decision.speed_factor})
-            )
+            key = (kind, decision.critical_track)
+            if t - self._last_event_t.get(key, -1e9) >= self.event_cooldown_s:
+                self._last_event_t[key] = t
+                events.append(
+                    Event(kind, frame_index, t, decision.reason, decision.critical_track, decision.level,
+                          {"speed_factor": decision.speed_factor})
+                )
         self._last_level = decision.level
 
         live = {tr.track_id for tr in tracks}

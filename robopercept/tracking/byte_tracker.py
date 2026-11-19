@@ -15,7 +15,7 @@ import numpy as np
 
 from ..config import TrackerConfig
 from ..detectors.nms import iou_matrix
-from ..types import Detection, Track
+from ..structures import Detection, Track
 from .cmc import CameraMotionCompensator, apply_warp_to_state
 from .kalman import BoxKalmanFilter
 from .matching import class_penalty, fuse_score, linear_assignment

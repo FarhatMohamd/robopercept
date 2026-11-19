@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 
 from ..config import ZoneConfig
-from ..types import Event, RiskLevel, Track
+from ..structures import Event, RiskLevel, Track
 
 _LEVELS = {"caution": RiskLevel.CAUTION, "warning": RiskLevel.WARNING, "critical": RiskLevel.CRITICAL}
 

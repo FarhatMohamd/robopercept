@@ -3,7 +3,7 @@
 __version__ = "1.0.0"
 __author__ = "FARHAT Mohamad"
 
-from .types import Detection, FrameResult, RiskLevel, SafetyDecision, Track, WorldState
+from .structures import Detection, FrameResult, RiskLevel, SafetyDecision, Track, WorldState
 
 __all__ = [
     "Detection",

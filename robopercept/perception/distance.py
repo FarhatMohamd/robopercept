@@ -21,8 +21,15 @@ from dataclasses import dataclass
 import numpy as np
 
 from ..config import DistanceConfig
-from ..types import Detection
+from ..structures import Detection
 from .camera import PinholeCamera
+
+
+# Typical object widths (m), used to recover the centre of boxes cut by the image border
+CLASS_WIDTHS = {
+    "person": 0.5, "pedestrian": 0.5, "bicycle": 0.6, "cyclist": 0.6, "motorcycle": 0.8,
+    "car": 1.8, "truck": 2.5, "bus": 2.55, "forklift": 1.2, "traffic cone": 0.4, "pallet": 1.2,
+}  # fmt: skip
 
 
 @dataclass
@@ -31,6 +38,7 @@ class RangeEstimate:
     z: float
     sigma: float
     cues: dict[str, float]
+    x_sigma: float = 0.3
 
 
 class DistanceEstimator:
@@ -38,6 +46,7 @@ class DistanceEstimator:
         self.camera = camera
         self.cfg = cfg or DistanceConfig()
         self.heights = {k.lower(): v for k, v in self.cfg.class_heights.items()}
+        self.widths = {k.lower(): v for k, v in CLASS_WIDTHS.items()}
         self.pixel_sigma = 1.5
 
     def _ground_cue(self, det: Detection) -> tuple[float, float] | None:
@@ -63,6 +72,24 @@ class DistanceEstimator:
         z = self.camera.fy * obj_h / det.height
         return z, self.cfg.size_sigma_rel * z
 
+    def _lateral(self, det: Detection, z: float) -> tuple[float, float]:
+        """Lateral offset of the box centre and its standard deviation.
+
+        A box cut by the left or right border no longer contains the object
+        centre, so its lateral measurement is returned with a very large
+        uncertainty: the motion filter then keeps extrapolating the last
+        reliable lateral position instead of following the shrinking box.
+        """
+        cam = self.camera
+        x1, _, x2, _ = (float(v) for v in det.box)
+        u = (x1 + x2) / 2.0
+        x = (u - cam.cx) / cam.fx * z
+        width_m = self.widths.get(det.class_name.lower(), 1.0)
+        sigma = 0.1 + 0.25 * width_m + 0.02 * z
+        if cam.width and (x1 <= 2.0 or x2 >= cam.width - 2.0):
+            sigma = 25.0
+        return float(x), float(sigma)
+
     def estimate(self, det: Detection, depth_z: float | None = None) -> RangeEstimate | None:
         cues: dict[str, tuple[float, float]] = {}
         g = self._ground_cue(det)
@@ -85,6 +112,7 @@ class DistanceEstimator:
             spread = np.std([v for v, _ in cues.values()])
             sigma = float(np.hypot(sigma, 0.5 * spread))
         z = float(min(z, self.cfg.max_range_m))
-        u, _ = det.bottom_center
-        x = float((u - self.camera.cx) / self.camera.fx * z)
-        return RangeEstimate(x=x, z=z, sigma=sigma, cues={k: v for k, (v, _) in cues.items()})
+        x, x_sigma = self._lateral(det, z)
+        return RangeEstimate(
+            x=x, z=z, sigma=sigma, cues={k: v for k, (v, _) in cues.items()}, x_sigma=x_sigma
+        )

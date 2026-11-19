@@ -19,7 +19,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-from ..types import Detection
+from ..structures import Detection
 from .base import Detector
 from .coco import COCO_NAMES
 from .nms import batched_nms, xywh_to_xyxy
