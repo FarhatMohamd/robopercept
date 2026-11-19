@@ -1,0 +1,12 @@
+.git
+**/__pycache__
+.pytest_cache
+.ruff_cache
+runs
+outputs
+docs/media
+ros2_ws/build
+ros2_ws/install
+ros2_ws/log
+*.pt
+*.engine

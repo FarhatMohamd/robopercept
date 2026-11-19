@@ -1,0 +1,18 @@
+# NVIDIA Jetson (JetPack 6, L4T r36). PyTorch, CUDA and TensorRT come from the base image.
+ARG L4T_IMAGE=ultralytics/ultralytics:latest-jetson-jetpack6
+FROM ${L4T_IMAGE}
+
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY robopercept ./robopercept
+COPY configs ./configs
+COPY scripts ./scripts
+RUN pip install --no-deps . && pip install "pydantic>=2.5" "pyyaml>=6"
+
+EXPOSE 8080
+ENTRYPOINT ["robopercept"]
+# Build the TensorRT engine on the device once:
+#   docker run --runtime nvidia -v $PWD/models:/app/models IMAGE \
+#       python scripts/export_model.py --model yolo26s.pt --format engine --half
+CMD ["run", "-c", "configs/jetson_tensorrt.yaml"]

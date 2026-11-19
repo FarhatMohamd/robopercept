@@ -64,6 +64,11 @@ class PerceptionNode(Node):
         self.pub_safety = self.create_publisher(String, "~/safety", 10)
         self.pub_speed = self.create_publisher(Float32, "~/speed_factor", 10)
         self.pub_img = self.create_publisher(Image, "~/annotated", 2)
+        if self.cfg.detector.backend == "synthetic":
+            self.get_logger().warn(
+                "detector.backend is 'synthetic' (simulator ground truth only): set it to "
+                "'onnx' or 'ultralytics' with the 'overrides' parameter for real images"
+            )
         self.get_logger().info(f"RoboPercept ready, detector backend: {self.cfg.detector.backend}")
 
     def on_camera_info(self, msg: CameraInfo) -> None:

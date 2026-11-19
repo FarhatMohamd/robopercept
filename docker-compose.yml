@@ -1,0 +1,30 @@
+services:
+  # Closed-loop simulator + dashboard on http://localhost:8080
+  demo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports: ["8080:8080"]
+    command: ["demo", "--scenario", "urban"]
+    restart: unless-stopped
+
+  # Real camera: map the device and mount the exported models
+  camera:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args: { EXTRAS: "onnx" }
+    profiles: ["camera"]
+    devices: ["/dev/video0:/dev/video0"]
+    volumes:
+      - ./models:/app/models:ro
+      - ./runs:/app/runs
+    ports: ["8080:8080"]
+    command: ["run", "-c", "configs/robot_onnx.yaml", "--serve"]
+
+  # Optional MQTT broker for fleet telemetry (set mqtt.enabled=true)
+  mqtt:
+    image: eclipse-mosquitto:2
+    profiles: ["mqtt"]
+    ports: ["1883:1883"]
+    command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]

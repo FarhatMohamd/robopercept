@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "RoboPercept: real-time perception and collision risk for autonomous robots and vehicles"
+type: software
+authors:
+  - family-names: Farhat
+    given-names: Mohamad
+    orcid: "https://orcid.org/0009-0008-5987-9386"
+    affiliation: "Arts et Métiers Institute of Technology"
+version: 1.0.0
+date-released: 2026-11-19
+license: MIT
+repository-code: "https://github.com/FarhatMohamd/robopercept"
+keywords:
+  - object detection
+  - multi-object tracking
+  - monocular depth
+  - autonomous driving
+  - mobile robotics
+  - ROS 2
