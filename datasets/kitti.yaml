@@ -1,0 +1,10 @@
+# KITTI 2-D detection converted with scripts/convert_kitti.py
+path: /data/kitti_yolo
+train: images/train
+val: images/val
+names:
+  0: car
+  1: truck
+  2: person
+  3: bicycle
+  4: bus

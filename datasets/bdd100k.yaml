@@ -1,0 +1,16 @@
+# BDD100K detection (100k driving images, diverse weather and time of day).
+# Convert the official JSON labels to YOLO txt files with the bdd100k toolkit.
+path: /data/bdd100k_yolo
+train: images/train
+val: images/val
+names:
+  0: person
+  1: rider
+  2: car
+  3: truck
+  4: bus
+  5: train
+  6: motorcycle
+  7: bicycle
+  8: traffic light
+  9: traffic sign
