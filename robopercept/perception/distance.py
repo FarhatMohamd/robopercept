@@ -23,13 +23,7 @@ import numpy as np
 from ..config import DistanceConfig
 from ..structures import Detection
 from .camera import PinholeCamera
-
-
-# Typical object widths (m), used to recover the centre of boxes cut by the image border
-CLASS_WIDTHS = {
-    "person": 0.5, "pedestrian": 0.5, "bicycle": 0.6, "cyclist": 0.6, "motorcycle": 0.8,
-    "car": 1.8, "truck": 2.5, "bus": 2.55, "forklift": 1.2, "traffic cone": 0.4, "pallet": 1.2,
-}  # fmt: skip
+from .priors import FOOTPRINT
 
 
 @dataclass
@@ -46,7 +40,7 @@ class DistanceEstimator:
         self.camera = camera
         self.cfg = cfg or DistanceConfig()
         self.heights = {k.lower(): v for k, v in self.cfg.class_heights.items()}
-        self.widths = {k.lower(): v for k, v in CLASS_WIDTHS.items()}
+        self.footprints = {k.lower(): v for k, v in FOOTPRINT.items()}
         self.pixel_sigma = 1.5
 
     def _ground_cue(self, det: Detection) -> tuple[float, float] | None:
@@ -73,22 +67,36 @@ class DistanceEstimator:
         return z, self.cfg.size_sigma_rel * z
 
     def _lateral(self, det: Detection, z: float) -> tuple[float, float]:
-        """Lateral offset of the box centre and its standard deviation.
+        """Lateral offset of the object centre and its standard deviation.
 
-        A box cut by the left or right border no longer contains the object
-        centre, so its lateral measurement is returned with a very large
-        uncertainty: the motion filter then keeps extrapolating the last
-        reliable lateral position instead of following the shrinking box.
+        For an object off the optical axis the box also contains its side
+        face, so the box centre is biased towards the axis. The *inner*
+        vertical edge of the box is the far inner corner of the object, at
+        depth ``z + length``; shifting it by half the class width gives an
+        unbiased centre. That edge also stays visible when the object leaves
+        the image on its outer side, which keeps passing vehicles correctly
+        placed until they disappear.
         """
         cam = self.camera
         x1, _, x2, _ = (float(v) for v in det.box)
-        u = (x1 + x2) / 2.0
-        x = (u - cam.cx) / cam.fx * z
-        width_m = self.widths.get(det.class_name.lower(), 1.0)
-        sigma = 0.1 + 0.25 * width_m + 0.02 * z
-        if cam.width and (x1 <= 2.0 or x2 >= cam.width - 2.0):
-            sigma = 25.0
-        return float(x), float(sigma)
+        fp = self.footprints.get(det.class_name.lower())
+        centre = 0.5 * (x1 + x2 - 2 * cam.cx) * z / cam.fx
+        sigma = 0.08 + 0.01 * z
+        cut_left = cam.width > 0 and x1 <= 3.0
+        cut_right = cam.width > 0 and x2 >= cam.width - 3.0
+        if fp is None:
+            return float(centre), float(sigma + 0.3 + (25.0 if cut_left or cut_right else 0.0))
+        half, length = fp[0] / 2.0, fp[1]
+        z_far = z + length
+        xr = (x2 - cam.cx) * z_far / cam.fx
+        xl = (x1 - cam.cx) * z_far / cam.fx
+        if xr < -half or (cut_left and not cut_right):  # object on the left of the axis
+            return float(xr - half), float(sigma + 0.03 * length)
+        if xl > half or (cut_right and not cut_left):  # object on the right
+            return float(xl + half), float(sigma + 0.03 * length)
+        if cut_left or cut_right:  # straddling the axis and cut: no reliable edge
+            return float(centre), 25.0
+        return float(centre), float(sigma + 0.1)
 
     def estimate(self, det: Detection, depth_z: float | None = None) -> RangeEstimate | None:
         cues: dict[str, tuple[float, float]] = {}

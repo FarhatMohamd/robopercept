@@ -98,6 +98,8 @@ class Track:
     in_ego_path: bool = False
     zones: list[str] = field(default_factory=list)
     history: list[tuple[float, float]] = field(default_factory=list)
+    # Raw box of the detection matched on this frame (``box`` is the filtered one)
+    det_box: np.ndarray | None = None
 
     def to_dict(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -200,6 +202,8 @@ class FrameResult:
     events: list[Event] = field(default_factory=list)
     timings_ms: dict[str, float] = field(default_factory=dict)
     depth_map: np.ndarray | None = None
+    # Source metadata (ground truth for the simulator, odometry, file path...)
+    meta: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {

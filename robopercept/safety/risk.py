@@ -19,6 +19,7 @@ import math
 import numpy as np
 
 from ..config import SafetyConfig
+from ..perception.priors import half_width
 from ..structures import Event, RiskLevel, SafetyDecision, Track
 
 
@@ -55,6 +56,7 @@ class RiskAssessor:
         self._reported: dict[int, RiskLevel] = {}
         self._last_level = RiskLevel.SAFE
         self._last_event_t: dict[tuple[str, int | None], float] = {}
+        self.ego_speed = self.cfg.ego_speed_mps
         self.event_cooldown_s = 2.0
 
     def _raw_level(self, tr: Track) -> tuple[RiskLevel, float, bool]:
@@ -62,24 +64,28 @@ class RiskAssessor:
         w = tr.world
         if w is None:
             return RiskLevel.SAFE, math.inf, False
-        # Corridor widened by half the object footprint (approximated per class)
-        half = cfg.corridor_half_width_m + (0.3 if tr.class_name in cfg.vulnerable_classes else 0.9)
+        # Corridor widened by half the object footprint
+        half = cfg.corridor_half_width_m + half_width(tr.class_name)
         ttc, in_path = time_to_collision(w.x, w.z, w.vx, w.vz, half)
         dist = w.distance
         vulnerable = tr.class_name in cfg.vulnerable_classes
         level = RiskLevel.SAFE
 
         if cfg.profile == "robot":
-            if dist <= cfg.stop_distance_m:
+            # Speed & separation monitoring: obstacles in the travel corridor, or any
+            # vulnerable agent (people) around the robot, scale the speed down
+            near = dist <= cfg.stop_distance_m
+            if (in_path and near) or dist <= 0.6 * cfg.stop_distance_m or ttc < cfg.ttc_critical_s:
                 level = RiskLevel.CRITICAL
-            elif dist <= cfg.slow_distance_m:
+            elif (in_path or vulnerable) and dist <= cfg.slow_distance_m:
                 level = RiskLevel.WARNING
-            elif in_path and dist <= 2 * cfg.slow_distance_m:
+            elif (in_path or vulnerable) and dist <= 2.0 * cfg.slow_distance_m:
                 level = RiskLevel.CAUTION
-            if ttc < cfg.ttc_critical_s:
-                level = max(level, RiskLevel.CRITICAL)
         else:
-            stop_d = stopping_distance(cfg.ego_speed_mps, cfg.reaction_time_s, cfg.max_decel_mps2)
+            # Safe gap when both brake at the same deceleration (lead object keeps v_obj >= 0)
+            v_ego = self.ego_speed
+            v_obj = max(0.0, v_ego - w.closing_speed)
+            stop_d = v_ego * cfg.reaction_time_s + max(0.0, v_ego**2 - v_obj**2) / (2.0 * cfg.max_decel_mps2)
             if ttc < cfg.ttc_critical_s or (in_path and 0 < dist <= max(stop_d, 2.0)):
                 level = RiskLevel.CRITICAL
             elif ttc < cfg.ttc_warning_s:
@@ -103,8 +109,16 @@ class RiskAssessor:
         self._reported[tid] = reported
         return reported
 
-    def assess(self, tracks: list[Track], frame_index: int, t: float) -> tuple[SafetyDecision, list[Event]]:
+    def assess(
+        self, tracks: list[Track], frame_index: int, t: float, ego_speed: float | None = None
+    ) -> tuple[SafetyDecision, list[Event]]:
+        """Score every track and aggregate a single decision for the controller.
+
+        ``ego_speed`` (m/s) should come from odometry when available; it falls
+        back to the configured nominal speed.
+        """
         cfg = self.cfg
+        self.ego_speed = cfg.ego_speed_mps if ego_speed is None else float(ego_speed)
         decision = SafetyDecision()
         events: list[Event] = []
         for tr in tracks:

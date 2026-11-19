@@ -1,0 +1,33 @@
+# Autonomous mobile robot (AMR) in a warehouse: speed & separation monitoring.
+source:
+  uri: synthetic:warehouse
+  fps: 30
+detector:
+  backend: synthetic
+  conf: 0.25
+safety:
+  profile: robot
+  corridor_half_width_m: 0.45
+  stop_distance_m: 1.2
+  slow_distance_m: 3.5
+  ttc_critical_s: 1.2
+  vulnerable_classes: [person, forklift]
+lanes:
+  enabled: true
+  lane_width_m: 2.4
+  departure_threshold_m: 0.6
+distance:
+  class_heights:
+    person: 1.72
+    forklift: 2.1
+    pallet: 0.15
+# Ground zones are expressed in the robot frame (x right, z forward, metres),
+# like the protective fields of a safety laser scanner.
+zones:
+  - name: protective field
+    frame: ground
+    polygon: [[-0.9, 0.2], [0.9, 0.2], [1.4, 4.5], [-1.4, 4.5]]
+    classes: [person, forklift]
+    level: warning
+server:
+  enabled: true

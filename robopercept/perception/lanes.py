@@ -23,12 +23,9 @@ class LaneDetector:
         self._departing = False
 
     def _roi_mask(self, h: int, w: int) -> np.ndarray:
-        top = int(h * self.cfg.roi_top_ratio)
-        poly = np.array(
-            [[(0.0, h), (0.42 * w, top), (0.58 * w, top), (w, h)]], dtype=np.int32
-        )
+        """Band below ``roi_top_ratio``; the colour mask and slope test reject clutter."""
         mask = np.zeros((h, w), dtype=np.uint8)
-        cv2.fillPoly(mask, poly, 255)
+        mask[int(h * self.cfg.roi_top_ratio) :, :] = 255
         return mask
 
     @staticmethod
@@ -58,11 +55,11 @@ class LaneDetector:
     def detect(self, image: np.ndarray) -> LaneEstimate:
         h, w = image.shape[:2]
         y_lo, y_hi = int(h * self.cfg.roi_top_ratio), h - 1
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        edges = cv2.Canny(blur, 60, 160)
-        mask = cv2.bitwise_and(edges, self._marking_mask(cv2.dilate(image, np.ones((3, 3)))))
-        mask = cv2.bitwise_and(mask, self._roi_mask(h, w))
+        # Edges of the colour mask: robust to low luminance contrast (yellow tape on concrete)
+        marks = self._marking_mask(cv2.GaussianBlur(image, (5, 5), 0))
+        marks = cv2.morphologyEx(marks, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+        edges = cv2.Canny(marks, 50, 150)
+        mask = cv2.bitwise_and(edges, self._roi_mask(h, w))
         lines = cv2.HoughLinesP(
             mask, 1, np.pi / 180, threshold=18, minLineLength=int(0.03 * h), maxLineGap=int(0.05 * h)
         )

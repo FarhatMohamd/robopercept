@@ -1,0 +1,26 @@
+# Dash-cam / vehicle camera with Ultralytics YOLO26 (NMS-free, end-to-end).
+source:
+  uri: "0"            # camera index, video file, RTSP URL or image folder
+  width: 1280
+  height: 720
+detector:
+  backend: ultralytics
+  model: yolo26s.pt
+  imgsz: 640
+  conf: 0.30
+  classes: [person, bicycle, car, motorcycle, bus, truck, traffic light, stop sign]
+tracker:
+  camera_motion_compensation: true
+camera:
+  hfov_deg: 78        # check your lens datasheet or run scripts/calibrate_camera.py
+  height_m: 1.35
+  pitch_deg: 1.0
+safety:
+  profile: vehicle
+  ego_speed_mps: 13.9 # 50 km/h; feed the real speed from CAN/odometry when available
+output:
+  save_video: runs/vehicle.mp4
+  jsonl_log: runs/vehicle.jsonl
+  event_snapshots_dir: runs/events
+server:
+  enabled: true

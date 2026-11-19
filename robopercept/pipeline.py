@@ -65,7 +65,7 @@ class Pipeline:
         self._lazy_init(img)
         assert self.camera is not None and self.ranger is not None
         timer = self.timer
-        res = FrameResult(frame.index, frame.timestamp, img)
+        res = FrameResult(frame.index, frame.timestamp, img, meta=frame.meta)
 
         with timer.stage("detect"):
             res.detections = self.detector.detect(img, frame.meta)
@@ -75,7 +75,7 @@ class Pipeline:
                 tracks = self.tracker.update(res.detections, img)
             else:
                 tracks = [
-                    Track(i + 1, d.box, d.score, d.class_id, d.class_name)
+                    Track(i + 1, d.box, d.score, d.class_id, d.class_name, det_box=d.box)
                     for i, d in enumerate(res.detections)
                 ]
 
@@ -94,7 +94,9 @@ class Pipeline:
                 res.lanes = self.lanes.detect(img)
 
         with timer.stage("safety"):
-            decision, events = self.risk.assess(tracks, frame.index, frame.timestamp)
+            decision, events = self.risk.assess(
+                tracks, frame.index, frame.timestamp, frame.meta.get("ego_speed")
+            )
             if self.zones is not None:
                 events += self.zones.update(tracks, frame.index, frame.timestamp)
             departing = bool(res.lanes is not None and res.lanes.departure)
@@ -211,4 +213,6 @@ class Pipeline:
 
 
 def _as_detection(tr: Track) -> Detection:
-    return Detection(tr.box, tr.score, tr.class_id, tr.class_name)
+    """Ranging uses the raw detection box: it is never extrapolated past the image border."""
+    box = tr.det_box if tr.det_box is not None else tr.box
+    return Detection(box, tr.score, tr.class_id, tr.class_name)

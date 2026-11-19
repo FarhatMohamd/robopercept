@@ -1,0 +1,19 @@
+# NVIDIA Jetson Orin: TensorRT FP16 engine exported on the device itself.
+source:
+  uri: "rtsp://192.168.1.20:8554/front"
+detector:
+  backend: ultralytics
+  model: models/yolo26s.engine  # python scripts/export_model.py --model yolo26s.pt --format engine --half
+  device: "0"
+  half: true
+  imgsz: 640
+tracker:
+  camera_motion_compensation: true
+depth:
+  enabled: true
+  model: depth-anything/Depth-Anything-V2-Small-hf
+  every_n_frames: 4
+safety:
+  profile: vehicle
+server:
+  enabled: true

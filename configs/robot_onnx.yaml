@@ -1,0 +1,25 @@
+# CPU-only robot (Raspberry Pi 5, NUC...) running an exported ONNX model.
+source:
+  uri: "0"
+  width: 640
+  height: 480
+  fps: 30
+detector:
+  backend: onnx
+  model: models/yolo26n.onnx   # python scripts/export_model.py --model yolo26n.pt --format onnx
+  imgsz: 416
+  conf: 0.35
+  classes: [person, dog, bicycle, chair]
+camera:
+  hfov_deg: 66
+  height_m: 0.35
+  pitch_deg: 8
+safety:
+  profile: robot
+  corridor_half_width_m: 0.30
+  stop_distance_m: 0.6
+  slow_distance_m: 2.0
+lanes:
+  enabled: false
+server:
+  enabled: true

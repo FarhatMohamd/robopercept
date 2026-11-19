@@ -7,6 +7,7 @@ import math
 import cv2
 import numpy as np
 
+from ..perception.priors import footprint
 from ..structures import FrameResult, LaneEstimate, RiskLevel, Track
 
 # BGR colours
@@ -42,7 +43,8 @@ def class_color(name: str) -> tuple[int, int, int]:
 def _label(img: np.ndarray, text: str, org: tuple[int, int], color: tuple[int, int, int], scale: float = 0.45) -> None:
     (tw, th), base = cv2.getTextSize(text, FONT, scale, 1)
     x, y = org
-    y = max(y, th + 4)
+    if y < th + 40:  # would collide with the HUD bar: move the label inside the box
+        y = y + th + 8
     cv2.rectangle(img, (x, y - th - 4), (x + tw + 6, y + base - 2), color, -1)
     cv2.putText(img, text, (x + 3, y - 3), FONT, scale, (20, 20, 20), 1, cv2.LINE_AA)
 
@@ -174,8 +176,8 @@ class BirdEyeView:
             w = tr.world
             if w.z > self.z_range or abs(w.x) > self.x_range:
                 continue
-            half = 0.3 if tr.class_name in ("person", "pedestrian", "dog") else 0.9
-            length = 0.5 if half < 0.5 else 2.2
+            width, length = footprint(tr.class_name)
+            half = width / 2.0
             p1 = self.to_px(w.x - half, w.z)
             p2 = self.to_px(w.x + half, w.z + length)
             col = RISK_COLORS[tr.risk] if tr.risk > RiskLevel.SAFE else class_color(tr.class_name)

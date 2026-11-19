@@ -101,7 +101,7 @@ def _urban_actors() -> list[Actor]:
               _piecewise([(0, 10.0), (5.0, 10.0), (7.5, 2.0), (13.0, 2.0), (16.0, 14.0)])),
         Actor("oncoming1", "car", (1.8, 1.45, 4.3), (200, 170, 60), -3.5, 90.0, _const(0.0, -11.0), spawn_t=1.0),
         Actor("oncoming2", "truck", (2.5, 3.2, 8.0), (80, 120, 160), -3.5, 120.0, _const(0.0, -9.0), spawn_t=8.0),
-        Actor("cyclist", "bicycle", (0.6, 1.7, 1.8), (170, 80, 170), 3.7, 40.0, _const(0.0, 6.0), spawn_t=9.0),
+        Actor("cyclist", "bicycle", (0.6, 1.1, 1.8), (170, 80, 170), 3.7, 40.0, _const(0.0, 6.0), spawn_t=9.0),
         Actor("walker", "person", (0.5, 1.65, 0.4), (200, 100, 60), -6.6, 45.0, _const(0.0, 1.2), spawn_t=2.0),
         Actor("parked", "truck", (2.5, 3.2, 7.5), (90, 90, 90), 6.4, 95.0, _const(0.0, 0.0), spawn_t=17.0),
         # Pedestrian crossing in front of the ego (vulnerable road user case)
@@ -138,7 +138,7 @@ def _warehouse_actors() -> list[Actor]:
               spawn_t=11.0, lifetime=7.0),
         Actor("forklift", "forklift", (1.2, 2.1, 2.4), (30, 160, 230), -2.6, 11.0, _const(1.0, 0.0),
               spawn_t=17.0, lifetime=6.0),
-        Actor("pallet", "pallet", (1.2, 0.15, 0.8), (60, 130, 170), -1.0, 20.0, _const(0.0, 0.0)),
+        Actor("pallet", "pallet", (1.2, 0.15, 0.8), (60, 130, 170), -2.1, 20.0, _const(0.0, 0.0)),
     ]
 
 

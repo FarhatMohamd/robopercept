@@ -230,6 +230,7 @@ class ByteTracker:
                     hits=t.hits,
                     time_since_update=t.time_since_update,
                     history=list(hist),
+                    det_box=t.det.box.copy() if t.time_since_update == 0 else None,
                 )
             )
         alive = {t.track_id for t in self.tracked + self.lost}

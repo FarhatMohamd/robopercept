@@ -1,0 +1,20 @@
+# Open-vocabulary detection with YOLOE-26: name the objects, no retraining.
+source:
+  uri: "0"
+detector:
+  backend: ultralytics
+  model: yoloe-26s-seg.pt
+  prompts: [person, forklift, pallet, traffic cone, wet floor sign, shopping cart]
+  conf: 0.25
+distance:
+  class_heights:
+    forklift: 2.1
+    pallet: 0.15
+    traffic cone: 0.7
+    wet floor sign: 0.6
+    shopping cart: 1.0
+safety:
+  profile: robot
+  vulnerable_classes: [person]
+server:
+  enabled: true

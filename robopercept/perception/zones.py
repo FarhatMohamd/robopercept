@@ -22,11 +22,16 @@ _LEVELS = {"caution": RiskLevel.CAUTION, "warning": RiskLevel.WARNING, "critical
 class _ZoneState:
     inside_since: dict[int, float] = field(default_factory=dict)
     dwell_reported: set[int] = field(default_factory=set)
+    last_seen: dict[int, int] = field(default_factory=dict)
 
 
 class ZoneMonitor:
-    def __init__(self, zones: list[ZoneConfig], image_size: tuple[int, int]) -> None:
+    def __init__(
+        self, zones: list[ZoneConfig], image_size: tuple[int, int], exit_frames: int = 8
+    ) -> None:
         self.zones = zones
+        # A track must stay outside this many frames before "exit" (debounce)
+        self.exit_frames = exit_frames
         w, h = image_size
         self.polys: list[np.ndarray] = []
         for z in zones:
@@ -58,6 +63,7 @@ class ZoneMonitor:
                 if not self.contains(i, tr):
                     continue
                 present.add(tr.track_id)
+                st.last_seen[tr.track_id] = frame_index
                 tr.zones.append(zone.name)
                 if tr.track_id not in st.inside_since:
                     st.inside_since[tr.track_id] = t
@@ -79,7 +85,7 @@ class ZoneMonitor:
                               tr.track_id, level, {"zone": zone.name})
                     )
             for tid in list(st.inside_since):
-                if tid not in present:
+                if tid not in present and frame_index - st.last_seen.get(tid, frame_index) >= self.exit_frames:
                     if tid in st.dwell_reported:
                         events.append(
                             Event("zone_exit", frame_index, t, f"#{tid} left '{zone.name}'",
@@ -87,4 +93,5 @@ class ZoneMonitor:
                         )
                     st.inside_since.pop(tid)
                     st.dwell_reported.discard(tid)
+                    st.last_seen.pop(tid, None)
         return events
